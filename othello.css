@@ -2,6 +2,10 @@ table, td {
   border: 1px solid gray;
 }
 
+td {
+  text-align: center;
+}
+
 div {
   font-size:30px;
 }

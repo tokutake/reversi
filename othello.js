@@ -13,6 +13,7 @@ const WHITE = 'white';
 const BLACK = 'black';
 const DEBUG = true;
 const BOARD_WIDTH = 8;
+const CSS_DISC = true;
 
 var body;
 var tds;
@@ -27,7 +28,7 @@ window.onload = function() {
   for (var i = 0; i < tds.length; i++) {
     var cell = tds[i];
     cell.bgColor = 'green';
-    cell.width = cell.height = 50;
+    cell.width = cell.height = 55;
     cell.setAttribute('x', i % BOARD_WIDTH);
     cell.setAttribute('y', Math.floor(i / BOARD_WIDTH));
   }
@@ -43,6 +44,10 @@ window.onload = function() {
       if (next) {
         turn = turn == BLACK ? WHITE : BLACK;
         refresh();
+
+        if (no_move(turn)) {
+          turn = opposite(turn);
+        }
       }
     }
   }
@@ -70,45 +75,40 @@ var refresh = function() {
   var num_black = 0;
   var num_white = 0;
 
+  var create_disc = function(color) {
+    var disc = document.createElement('embed');
+    disc.setAttribute('width', '50');
+    disc.setAttribute('height', '50');
+    disc.setAttribute('src', color + '.svg');
+    disc.setAttribute('type', 'image/svg+xml');
+    disc.setAttribute('margin', 'auto');
 
-  var create_black = function() {
-    var black = document.createElement('embed');
-    black.setAttribute('width', '50');
-    black.setAttribute('height', '50');
-    black.setAttribute('src', 'black.svg');
-    black.setAttribute('type', 'image/svg+xml');
-
-    return black;
+    return disc;
   }
-  var black = create_black();
-
-  var create_white = function() {
-    var white = document.createElement('embed');
-    white.setAttribute('width', '50');
-    white.setAttribute('height', '50');
-    white.setAttribute('src', 'white.svg');
-    white.setAttribute('type', 'image/svg+xml');
-
-    return white;
-  }
-
-  var white = create_white();
 
   for (var i = 0; i < BOARD_WIDTH; i++) {
     for (var j = 0; j < BOARD_WIDTH; j++) {
       var td = tds[i + j * BOARD_WIDTH];
 
+      var src = "";
       if (td.hasChildNodes()) {
-        console.log(td.hasChildNodes);
-        console.log(td.firstChild);
-        td.removeChild(td.firstChild);
+        src = td.firstChild.getAttribute('src');
       }
 
       if (cells[i][j] == BLACK) {
-        td.appendChild(create_black());
+        if (src == 'white.svg') {
+          td.removeChild(td.firstChild);
+        }
+        if (src != 'black.svg') {
+          td.appendChild(create_disc('black'));
+        }
       } else if (cells[i][j] == WHITE) {
-        td.appendChild(create_white());
-      } else if (cells[i][j] == EMPTY) {
+        if (src == 'black.svg') {
+          td.removeChild(td.firstChild);
+        }
+        if (src != 'white.svg') {
+          td.appendChild(create_disc('white'));
+        }
       }
     }
   }
@@ -127,6 +127,11 @@ var refresh = function() {
   $('num_black').textContent = num_black;
   $('num_white').textContent = num_white;
   $('turn').textContent = turn;
+  if (turn == BLACK) {
+    $('turn').appendChild(create_disc('black'));
+  } else {
+    $('turn').appendChild(create_disc('white'));
+  }
 }
 
 var put = function(x, y, color) {
@@ -176,6 +181,30 @@ var search = function(table, x, y, move, color) {
   console.log('x:' + x + ' y:' + y + ' color:' + color + ' not found');
   return false;
 }
+
+var can_put = function(x, y, color) {
+  var moves = [[1, 0], [-1, 0], [0, 1], [0, -1], [-1, -1], [1, 1], [-1, 1], [1, -1]];
+
+  for (var i = 0; i < moves.length; i++) {
+    if (search(table, x, y, move, color)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+var no_move = function(color) {
+  for (var i = 0; i < BOARD_WIDTH; i++) {
+    for (var j = 0; j < BOARD_WIDTH; j++) {
+      if (can_put(i, j, color)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 
 function Table() {
   this.cells = [];
