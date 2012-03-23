@@ -79,7 +79,7 @@ var refresh = function() {
     var disc = document.createElement('embed');
     disc.setAttribute('width', '50');
     disc.setAttribute('height', '50');
-    disc.setAttribute('src', color + '.svg');
+    disc.setAttribute('src', color + '.xml');
     disc.setAttribute('type', 'image/svg+xml');
     disc.setAttribute('margin', 'auto');
 
@@ -96,17 +96,17 @@ var refresh = function() {
       }
 
       if (cells[i][j] == BLACK) {
-        if (src == 'white.svg') {
+        if (src == 'white.xml') {
           td.removeChild(td.firstChild);
         }
-        if (src != 'black.svg') {
+        if (src != 'black.xml') {
           td.appendChild(create_disc('black'));
         }
       } else if (cells[i][j] == WHITE) {
-        if (src == 'black.svg') {
+        if (src == 'black.xml') {
           td.removeChild(td.firstChild);
         }
-        if (src != 'white.svg') {
+        if (src != 'white.xml') {
           td.appendChild(create_disc('white'));
         }
       }
