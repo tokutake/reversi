@@ -61,6 +61,17 @@ window.onload = function() {
 
   init_table();
 
+  var move = function() {
+    put_random(turn);
+
+    if (no_move(turn)) {
+    } else {
+      turn = opposite(turn);
+    }
+    refresh();
+  };
+
+  setInterval(move, 2000);
 }
 
 var init_table = function() {
@@ -155,6 +166,18 @@ var put = function(x, y, color) {
   return next;
 }
 
+var put_random = function(color) {
+  for (var i = 0; i < BOARD_WIDTH; i++) {
+    for (var j = 0; j < BOARD_WIDTH; j++) {
+      if (can_put(i, j, color)) {
+        put(i, j, color);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 var on_table = function(x, y) {
   return x >= 0 && x < BOARD_WIDTH && y >= 0 && y < BOARD_WIDTH;
 }
@@ -169,17 +192,14 @@ var search = function(table, x, y, move, color) {
   x += move[0];
   y += move[1];
   if (on_table(x, y) && table[x][y] != opposite(color)) {
-    console.log('x:' + x + ' y:' + y + ' color:' + color + ' not found');
     return false;
   }
 
   for (; on_table(x, y); x += move[0], y += move[1]) {
     if (table[x][y] == color) {
-      console.log('x:' + x + ' y:' + y + ' color:' + color + ' found');
       return true;
     }
   }
-  console.log('x:' + x + ' y:' + y + ' color:' + color + ' not found');
   return false;
 }
 
