@@ -38,7 +38,6 @@ window.onload = function() {
       var x = parseInt(this.getAttribute('x'));
       var y = parseInt(this.getAttribute('y'));
 
-      console.log('put x:' + x + ' :y' + y);
       var next = put(x, y, turn);
 
       if (next) {
@@ -47,6 +46,7 @@ window.onload = function() {
 
         if (no_move(turn)) {
           turn = opposite(turn);
+          refresh();
         }
       }
     }
@@ -60,6 +60,7 @@ window.onload = function() {
   }
 
   init_table();
+
 }
 
 var init_table = function() {
@@ -186,7 +187,7 @@ var can_put = function(x, y, color) {
   var moves = [[1, 0], [-1, 0], [0, 1], [0, -1], [-1, -1], [1, 1], [-1, 1], [1, -1]];
 
   for (var i = 0; i < moves.length; i++) {
-    if (search(table, x, y, move, color)) {
+    if (search(cells, x, y, moves[i], color)) {
       return true;
     }
   }
@@ -197,8 +198,10 @@ var can_put = function(x, y, color) {
 var no_move = function(color) {
   for (var i = 0; i < BOARD_WIDTH; i++) {
     for (var j = 0; j < BOARD_WIDTH; j++) {
-      if (can_put(i, j, color)) {
-        return false;
+      if (cells[i][j] == EMPTY) {
+        if (can_put(i, j, color)) {
+          return false;
+        }
       }
     }
   }
@@ -340,9 +343,5 @@ var Com = {
 
 var opposite = function(color) {
   return color == BLACK ? WHITE : BLACK;
-}
-
-var pass = function() {
-  turn = opposite(turn);
 }
 
