@@ -13,7 +13,6 @@ var WHITE = 'white';
 var BLACK = 'black';
 var DEBUG = true;
 var BOARD_WIDTH = 8;
-var CSS_DISC = true;
 
 var body;
 var tds;
@@ -62,16 +61,18 @@ window.onload = function() {
   init_table();
 
   var move = function() {
-    put_random(turn);
-
-    if (no_move(turn)) {
-    } else {
-      turn = opposite(turn);
+    if (no_move(WHITE)) {
+      return;
     }
-    refresh();
+
+    if (turn == WHITE) {
+      putByScore(turn);
+      turn = opposite(turn);
+      refresh();
+    }
   };
 
-  setInterval(move, 2000);
+  var intervalId = setInterval(move, 10);
 }
 
 var init_table = function() {
@@ -83,43 +84,40 @@ var init_table = function() {
   refresh();
 }
 
+var create_disc = function(color) {
+  var svgnode = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svgnode.setAttribute("width", "50");
+  svgnode.setAttribute("height", "50");
+  var circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  var rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  circle.setAttribute("cx", "25");
+  circle.setAttribute("cy", "25");
+  circle.setAttribute("r", "25");
+  circle.setAttribute("fill", color);
+  rect.setAttribute("width", "50");
+  rect.setAttribute("height", "50");
+  rect.setAttribute("fill", "green");
+
+  svgnode.appendChild(rect);
+  svgnode.appendChild(circle);
+  return svgnode;
+}
+
 var refresh = function() {
   var num_black = 0;
   var num_white = 0;
-
-  var create_disc = function(color) {
-    var disc = document.createElement('embed');
-    disc.setAttribute('width', '50');
-    disc.setAttribute('height', '50');
-    disc.setAttribute('src', color + '.xml');
-    disc.setAttribute('type', 'image/svg+xml');
-    disc.setAttribute('margin', 'auto');
-
-    return disc;
-  }
 
   for (var i = 0; i < BOARD_WIDTH; i++) {
     for (var j = 0; j < BOARD_WIDTH; j++) {
       var td = tds[i + j * BOARD_WIDTH];
 
-      var src = "";
-      if (td.hasChildNodes()) {
-        src = td.firstChild.getAttribute('src');
-      }
-
-      if (cells[i][j] == BLACK) {
-        if (src == 'white.xml') {
-          td.removeChild(td.firstChild);
-        }
-        if (src != 'black.xml') {
-          td.appendChild(create_disc('black'));
-        }
-      } else if (cells[i][j] == WHITE) {
-        if (src == 'black.xml') {
-          td.removeChild(td.firstChild);
-        }
-        if (src != 'white.xml') {
-          td.appendChild(create_disc('white'));
+      if (cells[i][j] != EMPTY) {
+        var color = cells[i][j];
+        if (!td.hasChildNodes()) {
+          td.appendChild(create_disc(color));
+        } else {
+          var circle = td.getElementsByTagName('circle')[0];
+          circle.setAttribute('fill', color);
         }
       }
     }
@@ -139,6 +137,7 @@ var refresh = function() {
   $('num_black').textContent = num_black;
   $('num_white').textContent = num_white;
   $('turn').textContent = turn;
+
   if (turn == BLACK) {
     $('turn').appendChild(create_disc('black'));
   } else {
@@ -178,6 +177,63 @@ var put_random = function(color) {
   return false;
 }
 
+var scores = [
+[50,  -20, 20, 5, 5, 20, -20,  50],
+[-20, -20, 20, 5, 5, 20, -20, -20],
+[ 20,  20, 20, 5, 5, 20,  20,  20],
+[  5,   5,  5, 5, 5,  5,   5,   5],
+[  5,   5,  5, 5, 5,  5,   5,   5],
+[ 20,  20, 20, 5, 5, 20,  20,  20],
+[-20, -20, 20, 5, 5, 20, -20, -20],
+[50,  -20, 20, 5, 5, 20, -20,  50],
+];
+
+var put_random = function(color) {
+  for (var i = 0; i < BOARD_WIDTH; i++) {
+    for (var j = 0; j < BOARD_WIDTH; j++) {
+      if (can_put(i, j, color)) {
+        console.log("x:" + i + " y:" + j + " color:" + color);
+        put(i, j, color);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+var positions = []; 
+var initPositions = function() {
+  for (var i = 0; i < BOARD_WIDTH; i++) {
+    for (var j = 0; j < BOARD_WIDTH; j++) {
+      positions.push [i, j];
+    }
+  }
+}
+
+var putByScore = function(color) {
+  initPositions();
+  var max = -1000;
+  var move = [];
+  for (var i = 0; i < BOARD_WIDTH; i++) {
+    for (var j = 0; j < BOARD_WIDTH; j++) {
+      var x = i;
+      var y = j;
+      if (can_put(x, y, color) && scores[x][y] > max) {
+        console.log("x:" + x + " y:" + y + " color:" + color);
+        max = scores[x][y];
+        move = [x, y];
+      }
+    }
+  }
+
+  if (move.length != 0) {
+    put(move[0], move[1], color);
+    return true;
+  } else {
+    return false;
+  }
+}
+
 var on_table = function(x, y) {
   return x >= 0 && x < BOARD_WIDTH && y >= 0 && y < BOARD_WIDTH;
 }
@@ -204,6 +260,10 @@ var search = function(table, x, y, move, color) {
 }
 
 var can_put = function(x, y, color) {
+  if (cells[x][y] != EMPTY) {
+    return false;
+  }
+
   var moves = [[1, 0], [-1, 0], [0, 1], [0, -1], [-1, -1], [1, 1], [-1, 1], [1, -1]];
 
   for (var i = 0; i < moves.length; i++) {
