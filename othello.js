@@ -8,12 +8,12 @@ $ = function(name) {
   return document.getElementById(name);
 }
 
-const EMPTY = 'empty';
-const WHITE = 'white';
-const BLACK = 'black';
-const DEBUG = true;
-const BOARD_WIDTH = 8;
-const CSS_DISC = true;
+var EMPTY = 'empty';
+var WHITE = 'white';
+var BLACK = 'black';
+var DEBUG = true;
+var BOARD_WIDTH = 8;
+var CSS_DISC = true;
 
 var body;
 var tds;
