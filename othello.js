@@ -61,18 +61,12 @@ window.onload = function() {
   init_table();
 
   var move = function() {
-    if (no_move(WHITE)) {
-      return;
-    }
-
-    if (turn == WHITE) {
-      putByScore(turn);
-      turn = opposite(turn);
-      refresh();
-    }
+    putByScore(turn);
+    turn = opposite(turn);
+    refresh();
   };
 
-  var intervalId = setInterval(move, 10);
+  var intervalId = setInterval(move, 2000);
 }
 
 var init_table = function() {
@@ -165,18 +159,6 @@ var put = function(x, y, color) {
   return next;
 }
 
-var put_random = function(color) {
-  for (var i = 0; i < BOARD_WIDTH; i++) {
-    for (var j = 0; j < BOARD_WIDTH; j++) {
-      if (can_put(i, j, color)) {
-        put(i, j, color);
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 var scores = [
 [50,  -20, 20, 5, 5, 20, -20,  50],
 [-20, -20, 20, 5, 5, 20, -20, -20],
@@ -187,19 +169,6 @@ var scores = [
 [-20, -20, 20, 5, 5, 20, -20, -20],
 [50,  -20, 20, 5, 5, 20, -20,  50],
 ];
-
-var put_random = function(color) {
-  for (var i = 0; i < BOARD_WIDTH; i++) {
-    for (var j = 0; j < BOARD_WIDTH; j++) {
-      if (can_put(i, j, color)) {
-        console.log("x:" + i + " y:" + j + " color:" + color);
-        put(i, j, color);
-        return true;
-      }
-    }
-  }
-  return false;
-}
 
 var positions = []; 
 var initPositions = function() {
@@ -219,7 +188,6 @@ var putByScore = function(color) {
       var x = i;
       var y = j;
       if (can_put(x, y, color) && scores[x][y] > max) {
-        console.log("x:" + x + " y:" + y + " color:" + color);
         max = scores[x][y];
         move = [x, y];
       }
