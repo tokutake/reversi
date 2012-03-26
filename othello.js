@@ -15,6 +15,7 @@ var BOARD_WIDTH = 8;
 
 var tds;
 var table;
+var lastTime;
 
 window.onload = function() {
   tds = document.getElementsByTagName('td');
@@ -26,20 +27,25 @@ window.onload = function() {
     cell.width = cell.height = 55;
     cell.setAttribute('x', i % BOARD_WIDTH);
     cell.setAttribute('y', Math.floor(i / BOARD_WIDTH));
-    cell.onclick = function() {
+  }
+
+  for (var i = 0; i < tds.length; i++) {
+    tds[i].onclick = function() {
       var x = parseInt(this.getAttribute('x'));
       var y = parseInt(this.getAttribute('y'));
 
-      var next = put(x, y, table.turn);
+      var next = table.put(x, y, table.turn);
+      refresh();
 
       if (next) {
+        lastTime = new Date();
         table.turn = table.turn == BLACK ? WHITE : BLACK;
-        refresh();
 
-        if (no_move(table.turn)) {
+        if (table.noMove(table.turn)) {
           table.turn = opposite(table.turn);
           refresh();
         }
+        refresh();
       }
     }
   }
@@ -48,12 +54,18 @@ window.onload = function() {
   refresh();
 
   var move = function() {
-    table.putByScore(table.turn);
-    table.turn = opposite(table.turn);
-    refresh();
+    if (new Date() - lastTime < 500) {
+      return;
+    }
+
+    if (table.turn == WHITE) {
+      table.putByScore(table.turn);
+      table.turn = opposite(table.turn);
+      refresh();
+    }
   };
 
-  var intervalId = setInterval(move, 2000);
+  var intervalId = setInterval(move, 500);
 }
 
 var createDisc = function(color) {
@@ -165,6 +177,7 @@ function Table() {
   this.put = function(x, y, color) {
     var cell = this.cells[x][y];
 
+    var next = false;
     if (cell == EMPTY) {
       var moves = [[1, 0], [-1, 0], [0, 1], [0, -1], [-1, -1], [1, 1], [-1, 1], [1, -1]];
 
@@ -173,9 +186,11 @@ function Table() {
         if (this.search(x, y, move, color)) {
           this.cells[x][y] = color;
           this.reverse(x + move[0], y + move[1], move, color);
+          next = true;
         }
       }
     }
+    return next;
   }
 
   this.canPut = function(x, y, color) {
@@ -192,6 +207,13 @@ function Table() {
     }
 
     return false;
+  }
+
+  this.eval = function() {
+    for (var i = 0; i < BOARD_WIDTH; i++) {
+      for (var j = 0; j < BOARD_WIDTH; j++) {
+      }
+    }
   }
 
   this.putByScore = function(color) {
@@ -220,7 +242,7 @@ function Table() {
     return x >= 0 && x < BOARD_WIDTH && y >= 0 && y < BOARD_WIDTH;
   }
 
-  this.no_move = function(color) {
+  this.noMove = function(color) {
     for (var i = 0; i < BOARD_WIDTH; i++) {
       for (var j = 0; j < BOARD_WIDTH; j++) {
         if (this.cells[i][j] == EMPTY) {
