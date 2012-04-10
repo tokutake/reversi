@@ -12,6 +12,7 @@ var EMPTY = 'empty';
 var WHITE = 'white';
 var BLACK = 'black';
 var BOARD_WIDTH = 8;
+var BOTH_CPU = true;
 
 var tds;
 var table;
@@ -53,19 +54,20 @@ window.onload = function() {
   table.init();
   refresh();
 
+  var CPU_INTERVAL = 1500;
   var move = function() {
-    if (new Date() - lastTime < 500) {
+    if (new Date() - lastTime < CPU_INTERVAL) {
       return;
     }
 
-    if (table.turn == WHITE) {
+    if (BOTH_CPU || table.turn == WHITE) {
       table.putByScore(table.turn);
       table.turn = opposite(table.turn);
       refresh();
     }
   };
 
-  var intervalId = setInterval(move, 500);
+  var intervalId = setInterval(move, CPU_INTERVAL);
 }
 
 var createDisc = function(color) {
@@ -87,6 +89,34 @@ var createDisc = function(color) {
   return svgnode;
 }
 
+var changeColor = function(element, colorName) {
+  var n = new Number(0);
+  var start, end, step;
+  var dis = 80;
+  if (colorName == 'black') {
+    start = 255;
+    end = 0;
+    step = -dis;
+  } else {
+    start = 0;
+    end = 255;
+    step = dis;
+  }
+  n = start;
+
+  var setColor = function(n) {
+
+      var colorCode = 'rgb(' + n + ',' + n + ',' + n + ')';
+      element.setAttribute('fill', colorCode);
+        if ((colorName == 'white' && n < end) || (colorName == 'black' && n > end)) {
+          setTimeout(function() {setColor(n+step);}, 100);
+        } else {
+          element.setAttribute('fill', colorName);
+        }
+  };
+  setColor(n);
+}
+
 var refresh = function() {
   var num_black = 0;
   var num_white = 0;
@@ -95,13 +125,13 @@ var refresh = function() {
     for (var j = 0; j < BOARD_WIDTH; j++) {
       var td = tds[i + j * BOARD_WIDTH];
 
+      var circle = td.getElementsByTagName('circle')[0];
       if (table.cells[i][j] != EMPTY) {
         var color = table.cells[i][j];
         if (!td.hasChildNodes()) {
           td.appendChild(createDisc(color));
-        } else {
-          var circle = td.getElementsByTagName('circle')[0];
-          circle.setAttribute('fill', color);
+        } else if (circle.getAttribute('fill') != color) {
+          changeColor(circle, color);
         }
       }
     }
